@@ -3,11 +3,11 @@
 """
 
 
-def minOperations(n: int) -> int:
+def minOperations(n):
     """Determines fewest number of operations needed to result in exactly n H characters in the file"""
-    ops: int = 0
-    H: int = 1
-    cpAll: int = 0
+    ops = 0
+    H = 1
+    cpAll = 0
 
     while H != n:
         if n % H == 0:
