@@ -1,40 +1,64 @@
 #!/usr/bin/python3
-"""Performs log parsing from stdin"""
-
-import re
+"""
+Module 0-stats
+script that reads stdin line by line and computes metrics
+"""
 import sys
-counter = 0
-file_size = 0
-statusC_counter = {200: 0, 301: 0, 400: 0,
-                   401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
+import re
+
+total_file_size = 0
+
+# sample_line = '36.196.190.72 - [2022-04-26 07:59:21.687812] '\
+#        '"GET /projects/260 HTTP/1.1" 500 878'
+
+pattern = r'^([\d]{1,3}\.){3}([\d]{1,3})'
+pattern += r'( - )(\[[\d]{4}-[\d]{2}-[\d]{2}'
+pattern += r' [\d]{2}:[\d]{2}:[\d]{2}\.[\d]{1,}\])'
+pattern += r'( "GET \/projects\/260 HTTP\/1\.1") '
+pattern += r'([\d]{3}) ([\d]{1,4})$'
 
 
-def printCodes(dict, file_s):
-    """Prints the status code and the number of times they appear"""
-    print("File size: {}".format(file_s))
-    for key in sorted(dict.keys()):
-        if statusC_counter[key] != 0:
-            print("{}: {}".format(key, dict[key]))
+codes = {200: 0, 301: 0, 400: 0, 401: 0, 403: 0, 404: 0, 405: 0, 500: 0}
+
+no_of_lines = 0
 
 
-if __name__ == "__main__":
+def is_line_valid(line: str) -> bool:
+    result = re.match(pattern, line)
+    if result:
+        return True
+    return False
+
+
+def generate_statistics(line: str) -> None:
+    global total_file_size
+    chars = line.split(' ')
+
+    file_size = int(chars[-1].replace('\n', ''))
     try:
-        for line in sys.stdin:
-            split_string = re.split('- |"|"| " " ', str(line))
-            statusC_and_file_s = split_string[-1]
-            if counter != 0 and counter % 10 == 0:
-                printCodes(statusC_counter, file_size)
-            counter = counter + 1
-            try:
-                statusC = int(statusC_and_file_s.split()[0])
-                f_size = int(statusC_and_file_s.split()[1])
-                # print("Status Code {} size {}".format(statusC, f_size))
-                if statusC in statusC_counter:
-                    statusC_counter[statusC] += 1
-                file_size = file_size + f_size
-            except:
-                pass
-        printCodes(statusC_counter, file_size)
+        status_code = int(chars[-2])
+        if status_code in codes:
+            codes[status_code] += 1
+    except ValueError:
+        pass
+
+    total_file_size += file_size
+
+
+def print_statistics() -> None:
+    print('File size: {}'.format(total_file_size))
+    for key, value in sorted(codes.items()):
+        if value != 0:
+            print('{}: {}'.format(key, value))
+
+if __name__ == '__main__':
+    try:
+        for i, line in enumerate(sys.stdin, 1):
+            # generate statistics only for a valid log
+            if is_line_valid(line):
+                generate_statistics(line)
+            if not i % 10:
+                print_statistics()
     except KeyboardInterrupt:
-        printCodes(statusC_counter, file_size)
+        print_statistics()
         raise
