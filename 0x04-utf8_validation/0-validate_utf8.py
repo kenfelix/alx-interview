@@ -4,10 +4,10 @@
 
 def validUTF8(data):
     """
-        Check that a sequence of byte values follows the UTF-8 encoding
-        rules.  Does not check for canonicalization (i.e. overlong encodings
-        are acceptable).
-        """
+    Check that a sequence of byte values follows the UTF-8 encoding
+    rules.  Does not check for canonicalization (i.e. overlong encodings
+    are acceptable).
+    """
 
     data = iter(data)
     for leading_byte in data:
